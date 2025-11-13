@@ -1,0 +1,125 @@
+Build a complete, production-ready crowdfunding web application called **TrueFund** using Vite + React + Tailwind + Supabase. Produce code that is ready to run in Replit and ready to push to an existing GitHub repo (true-fund-for-good). Include README and clear commit-ready output.
+
+DO NOT commit any .env or secrets into git. Create an `.env.example` with placeholders:
+
+VITE_SUPABASE_URL=
+VITE_SUPABASE_ANON_KEY=
+# (Service role key only used in server functions; name it SUPABASE_SERVICE_ROLE_KEY and store it only in server envs)
+
+REQUIREMENTS — implement everything below exactly:
+
+1) PROJECT / TECH STACK
+- Vite + React (TypeScript optional but OK).
+- TailwindCSS for styling (mobile-first, responsive).
+- Supabase client setup in `src/lib/supabase.js` (or .ts) using env variables.
+- Use modular components, `pages/` directory, and `lib/` for utilities.
+- Provide `README.md` with local run and deploy steps.
+
+2) PAGES & ROUTES
+- Home: hero, search by title or unique code, highlighted campaigns, trending list.
+- Explore: filters (location, category, verified, urgency), pagination or infinite scroll.
+- Campaign Detail: image, title, cause, goal, collected, progress bar, milestones, reviews, donate modal, QR download, poster generator.
+- Start Campaign: full form (title, description, cause dropdown, goal, location, image upload, hospital email conditional, temporary launch toggle, submit).
+- Profile: user info, my campaigns, my donations.
+- NGO Dashboard: upload verification docs, NGO-only campaign creation toggles.
+- Admin Panel: view pending verifications, release funds, manage tickets.
+- Reviews page & support/tickets page.
+- Mobile bottom nav (Home, Explore, Start, Profile).
+
+3) DATABASE (Create SQL + run-ready migrations)
+Include an SQL file (`supabase/init.sql`) that creates the tables and RLS policies:
+
+Tables:
+- users(id uuid primary key default gen_random_uuid(), name text, email text, phone text, profile_photo_url text, created_at timestamptz default now());
+- campaigns(id uuid primary key default gen_random_uuid(), title text not null, description text, image_url text, location text, cause text, goal_amount bigint default 0, collected_amount bigint default 0, unique_code text, qr_url text, verified boolean default false, is_temporary boolean default false, created_by uuid references users(id), created_at timestamptz default now());
+- donations(id uuid primary key default gen_random_uuid(), campaign_id uuid references campaigns(id), donor_name text, amount bigint, type text default 'donation', created_at timestamptz default now());
+- reviews(id uuid primary key default gen_random_uuid(), user_name text, user_image text, review_text text, rating int, created_at timestamptz default now());
+- tickets(id uuid primary key default gen_random_uuid(), name text, email text, message text, created_at timestamptz default now());
+- ngo_verifications(id uuid primary key default gen_random_uuid(), user_id uuid references users(id), documents_url text, verified boolean default false, requested_at timestamptz default now());
+
+RLS policies (include in SQL file):
+- enable RLS on users, donations, campaigns
+- allow authenticated users to update their own user row (id = auth.uid())
+- allow public select on campaigns (campaign listings)
+- allow insert on donations for authenticated users
+- admin/service role policies handled via server functions (service_role key only in server env)
+
+Add seed demo data for 3 campaigns and 5 reviews using Unsplash placeholder links.
+
+4) STORAGE
+- Create/expect Supabase bucket `campaign-images` (private).
+- Frontend should upload images using signed uploads and store signed URL or path in campaigns.image_url.
+- Provide helper function `uploadImageToSupabase(file)`.
+
+5) AUTHENTICATION
+- Email magic link / OTP via Supabase Auth (enable in docs).
+- Profile creation on first sign-in (store user row).
+- Phone OTP support: TODO notes (requires Twilio, provide comments and place for keys).
+
+6) CAMPAIGN CREATION & UNIQUE CODES
+- On campaign submit:
+  - Generate unique code format `TF-<6 alphanumeric>`.
+  - Generate QR via Google Charts or client QR lib, produce downloadable PNG and a variant with small TrueFund logo overlaid (use Canvas API).
+  - Save qr_url and unique_code to campaigns table.
+- If cause == 'Medical' and hospital_email provided:
+  - Store hospital_email in campaign row and call server endpoint `/api/send-hospital-verification` to send email link.
+  - Provide optional checkbox “Launch Now (Temporary)” which sets `is_temporary=true` (funds are collected but not released until verification).
+
+7) DONATION FLOW
+- Donate modal collects name (optional) and amount and tip option (tip TrueFund), fake payment flow for demo.
+- On success: insert donation row and increment campaign.collected_amount atomically (transaction or serverless function).
+- If campaign.is_temporary, keep funds in donations but mark `released=false` until admin verifies.
+
+8) MEDICAL VERIFICATION (server endpoints)
+- Provide `/api/send-hospital-verification` (serverless function) to send a one-click Yes/No email to `hospital_email`. Email body should link to `/api/verify-hospital?campaign_id=...&decision=yes|no`.
+- Provide `/api/verify-hospital` (serverless) that validates the query and updates campaigns.verified = true/false. If verified and campaign.is_temporary then mark funds releasable; add admin notification row.
+- Use Supabase service_role key **only** in these server endpoints (store in Vercel server env; never expose to frontend).
+
+9) QR & POSTER GENERATOR
+- Client-side poster generator: Canvas that composites campaign image, title, QR, goal and progress; export PNG.
+- Allow QR download separately.
+- Use small TrueFund watermark/logo embedded in poster and QR overlay.
+
+10) ADMIN & NGO RULES
+- NGO verification flow: upload documents (to `campaign-images` or `ngo-docs` bucket), create ngo_verifications row; admin can approve.
+- Disaster Relief campaigns can only be created by NGO accounts (frontend checks + backend validation).
+
+11) SUPPORT & TICKETS
+- Page to create a ticket (stored in `tickets` table).
+- Admin ticket dashboard to resolve.
+
+12) SECURITY & RLS notes
+- Add inline guidance in README to set envs and rotate keys if leaked.
+- Include SQL to enable RLS and create necessary policies (see DB section).
+- Provide `supabase/seed.sql` and `supabase/init.sql`.
+
+13) DEVOPS / OUTPUT
+- Include `.env.example` only (no .env)
+- README with:
+  - How to set Supabase project and keys.
+  - How to run locally: `npm install`, `npm run dev`.
+  - How to push to GitHub and recommended commit message: `feat: regenerate complete TrueFund app (Replit AI)`.
+  - How to deploy to Vercel (env variables names).
+- Provide simple serverless endpoints in `/api` folder (Node/Express or Replit endpoints) for hospital verify and email send (stubbed send; include comments where to plug real SMTP or email provider).
+- Add `scripts` in package.json: `dev`, `build`, `preview`.
+
+14) GIT & DEPLOY INSTRUCTIONS (for Replit AI to output)
+- After generation, show explicit instructions:
+  - How to connect Replit to GitHub and push to existing repo `true-fund-for-good` (Commit message above).
+  - Warn: if overwriting, create backup branch first (backup/lovable-YYYYMMDD).
+  - Provide exact Vercel env names to set:
+    VITE_SUPABASE_URL
+    VITE_SUPABASE_ANON_KEY
+    SUPABASE_SERVICE_ROLE_KEY (server only)
+- After pushing, instruct to redeploy on Vercel and test flows.
+
+15) QA & TESTING
+- Provide a short checklist in README for manual testing:
+  - create campaign (medical + non-medical)
+  - upload image -> check storage
+  - donate -> check donations table and campaign.collected_amount
+  - create review -> check reviews table
+  - create ticket -> check tickets table
+  - hospital verify -> call `/api/verify-hospital?campaign_id=...&decision=yes`
+
+END — produce a complete project structure with working code and the files described above, ready to push to `true-fund-for-good`. After generation, print exact next steps to connect to GitHub, push, and redeploy on Vercel.
