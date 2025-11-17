@@ -19,22 +19,26 @@ export default defineConfig({
         ]
       : []),
   ],
-  // THIS IS THE FIX:
-  // We are telling Vite that your project lives in the 'src' folder.
-  root: path.resolve(import.meta.dirname, "src"),
+
+  // We are removing the 'root' config
 
   resolve: {
     alias: {
-      // This path is now correct because it's an absolute path
+      // This path is now correct
       "@": path.resolve(import.meta.dirname, "src"),
       "@shared": path.resolve(import.meta.dirname, "shared"),
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
     },
   },
   build: {
-    // This path is also correct because it's an absolute path
+    // This path is correct
     outDir: path.resolve(import.meta.dirname, "dist"),
     emptyOutDir: true,
+    // THIS IS THE FIX:
+    // We are telling Vite where to find the index.html file
+    rollupOptions: {
+      input: path.resolve(import.meta.dirname, "src/index.html"),
+    },
   },
   server: {
     fs: {
