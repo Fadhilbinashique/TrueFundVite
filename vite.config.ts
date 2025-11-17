@@ -19,17 +19,20 @@ export default defineConfig({
         ]
       : []),
   ],
+  // THIS IS THE FIX:
+  // We are telling Vite that your project lives in the 'src' folder.
+  root: path.resolve(import.meta.dirname, "src"),
+
   resolve: {
     alias: {
-      // This now correctly points to your 'src' folder
+      // This path is now correct because it's an absolute path
       "@": path.resolve(import.meta.dirname, "src"),
       "@shared": path.resolve(import.meta.dirname, "shared"),
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
     },
   },
-  // We removed the 'root' line that was pointing to a 'client' folder
   build: {
-    // This now correctly points to 'dist'
+    // This path is also correct because it's an absolute path
     outDir: path.resolve(import.meta.dirname, "dist"),
     emptyOutDir: true,
   },
