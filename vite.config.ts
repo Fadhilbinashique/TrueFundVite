@@ -20,24 +20,26 @@ export default defineConfig({
       : []),
   ],
 
-  // We are removing the 'root' config
+  // We do NOT set the 'root' here. We leave it as default.
 
   resolve: {
     alias: {
-      // This path is now correct
+      // These absolute paths are correct
       "@": path.resolve(import.meta.dirname, "src"),
       "@shared": path.resolve(import.meta.dirname, "shared"),
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
     },
   },
   build: {
-    // This path is correct
+    // This absolute path is also correct
     outDir: path.resolve(import.meta.dirname, "dist"),
     emptyOutDir: true,
+
     // THIS IS THE FIX:
-    // We are telling Vite where to find the index.html file
+    // We are giving it the simple, relative string path.
+    // No 'path.resolve'.
     rollupOptions: {
-      input: path.resolve(import.meta.dirname, "src/index.html"),
+      input: "src/index.html",
     },
   },
   server: {
