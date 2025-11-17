@@ -1,7 +1,7 @@
 import express, { type Request, Response, NextFunction } from "express";
 // We fix the import paths to go "up one level" to the root
-import { registerRoutes } from "../routes";
-import { log } from "../vite";
+import { registerRoutes } from "../server/routes";
+import { log } from "../server/vite";
 
 // This will be our cached Express app
 let app: express.Express | null = null;
@@ -61,7 +61,7 @@ async function setupApp() {
   await registerRoutes(newApp);
 
   // Add your error handler
-  newApp.use((err: any, _req: Request, res: Response, _next: NextFunction)s => {
+  newApp.use((err: any, _req: Request, res: Response, _next: NextFunction) => {
     const status = err.status || err.statusCode || 500;
     const message = err.message || "Internal Server Error";
     res.status(status).json({ message });

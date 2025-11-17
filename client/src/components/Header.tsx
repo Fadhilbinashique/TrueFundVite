@@ -5,7 +5,7 @@ import { supabase } from "@/lib/supabase";
 import { useQuery } from "@tanstack/react-query";
 
 export function Header() {
-  const [location] = useLocation();
+  const [location, navigate] = useLocation();
 
   const { data: session } = useQuery({
     queryKey: ['/api/auth/session'],
@@ -13,7 +13,7 @@ export function Header() {
 
   const handleSignOut = async () => {
     await supabase.auth.signOut();
-    window.location.href = '/';
+    navigate('/');
   };
 
   const navItems = [
