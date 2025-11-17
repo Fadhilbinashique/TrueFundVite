@@ -21,14 +21,16 @@ export default defineConfig({
   ],
   resolve: {
     alias: {
-      "@": path.resolve(import.meta.dirname, "client", "src"),
+      // This now correctly points to your 'src' folder
+      "@": path.resolve(import.meta.dirname, "src"),
       "@shared": path.resolve(import.meta.dirname, "shared"),
       "@assets": path.resolve(import.meta.dirname, "attached_assets"),
     },
   },
-  root: path.resolve(import.meta.dirname, "client"),
+  // We removed the 'root' line that was pointing to a 'client' folder
   build: {
-    outDir: path.resolve(import.meta.dirname, "dist/public"),
+    // This now correctly points to 'dist'
+    outDir: path.resolve(import.meta.dirname, "dist"),
     emptyOutDir: true,
   },
   server: {
